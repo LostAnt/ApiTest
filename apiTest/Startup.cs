@@ -95,9 +95,32 @@ namespace apiTest
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
+                // temporary shit
+                var admin = dataContext.Users.FirstOrDefault((x) => x.Login == "admin");
+
+                if (admin != null)
+                    dataContext.Users.Remove(admin);
+
+                byte[] passwordHash, passwordSalt;
+
+                UserService.CreatePasswordHash("admin", out passwordHash, out passwordSalt);
+
+                dataContext.Users.Add(new Entities.User {
+                    Login = "admin",
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    Name = "admin",
+                    Surname = "admin",
+                    Patronymic = "admin",
+                    Role = Entities.Role.Admin
+                });
+
+                dataContext.SaveChanges();
+
             }
 
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseRouting();
 

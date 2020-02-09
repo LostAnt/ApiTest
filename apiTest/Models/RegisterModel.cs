@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using apiTest.Entities;
 
 namespace apiTest.Models
 {

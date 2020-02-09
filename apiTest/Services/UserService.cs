@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using apiTest.Entities;
 using apiTest.Helpers;
+using Microsoft.Extensions.Options;
 
 namespace apiTest.Services
 {
@@ -19,10 +20,12 @@ namespace apiTest.Services
     public class UserService : IUserService
     {
         private readonly DataContext _context;
+        private readonly AppSettings _appSettings;
 
-        public UserService(DataContext context)
+        public UserService(DataContext context, IOptions<AppSettings> appSettings)
         {
             _context = context;
+            _appSettings = appSettings.Value;
         }
 
         public User Authenticate(string login, string password)
@@ -113,7 +116,7 @@ namespace apiTest.Services
             _context.SaveChanges();
         }
 
-        private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        public static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             if (password == null) throw new ArgumentNullException("password");
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value can't be empty", "password");
@@ -125,7 +128,7 @@ namespace apiTest.Services
             }
         }
 
-        private static bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
+        public static bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
         {
             if (password == null) throw new ArgumentNullException("password");
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value can't be empty!", "password");

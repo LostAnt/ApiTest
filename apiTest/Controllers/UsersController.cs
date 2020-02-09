@@ -49,7 +49,8 @@ namespace apiTest.Controllers
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
+                    new Claim(ClaimTypes.Name, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role, user.Role)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -59,12 +60,13 @@ namespace apiTest.Controllers
 
             return Ok(new
             {
-                Id = user.Id,
-                Login = user.Login,
-                Name = user.Name,
-                Surname = user.Surname,
-                Patronymic = user.Patronymic,
-                Token = tokenString
+                user.Id,
+                user.Login,
+                user.Name,
+                user.Surname,
+                user.Patronymic,
+                Token = tokenString,
+                user.Role
             });
         }
 
@@ -86,6 +88,7 @@ namespace apiTest.Controllers
             }
         }
 
+        [Authorize(Roles = Role.Admin)]
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -98,7 +101,13 @@ namespace apiTest.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
+            var currentUserId = int.Parse(User.Identity.Name);
+
+            if (id != currentUserId && !User.IsInRole(Role.Admin))
+                return Forbid();
+
             var user = _userService.GetById(id);
+
             var model = _mapper.Map<UserModel>(user);
 
             return Ok(model);
@@ -107,6 +116,11 @@ namespace apiTest.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody]UpdateModel model)
         {
+            var currentUserId = int.Parse(User.Identity.Name);
+
+            if (id != currentUserId && !User.IsInRole(Role.Admin))
+                return Forbid();
+
             var user = _mapper.Map<User>(model);
 
             user.Id = id;
@@ -123,6 +137,7 @@ namespace apiTest.Controllers
             }
         }
 
+        [Authorize(Roles = Role.Admin)]
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
